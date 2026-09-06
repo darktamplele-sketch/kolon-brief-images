@@ -92,7 +92,7 @@ severity 기준:
 const USER = `아래 보고서 초안을 검증하라.\n\n---\n\n${draft}`;
 
 // ── 전송 기록 ────────────────────────────────────────────────
-const stamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15);
+const stamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
 const egressDir = path.join('92_outputs', '05_orchestration', 'egress');
 fs.mkdirSync(egressDir, { recursive: true });
 
