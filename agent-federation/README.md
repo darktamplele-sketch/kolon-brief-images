@@ -51,21 +51,57 @@ D:\LLM WIKI\92_outputs\05_orchestration\egress\
 검증자 C는 외부 LLM을 호출한다. **API 키는 환경변수로 넣는다. `settings.json`에 적지 않는다.**
 
 ```powershell
-# PowerShell — 사용자 환경변수로 영구 설정
-setx OPENAI_API_KEY "sk-..."
+# PowerShell — 사용자 환경변수로 영구 설정 (새 터미널부터 적용)
+setx OPENAI_API_KEY "sk-proj-..."
 setx EXTERNAL_VERIFIER_MODEL "gpt-4.1"    # 선택. 미설정 시 기본값
 ```
 
-사내 프록시 환경이면 `HTTPS_PROXY`도 설정한다.
+`setx`는 **현재 창에는 적용되지 않는다.** 설정 후 터미널을 새로 열어야 한다.
+지금 창에서 바로 쓰려면 `$env:OPENAI_API_KEY = "sk-proj-..."`를 함께 실행한다.
 
-### 전송 내용을 먼저 확인하려면
+> **ChatGPT 구독과 API 결제는 별개다.** ChatGPT Plus·Team 구독으로는 API를 호출할 수 없고,
+> platform.openai.com에서 별도로 크레딧을 충전해야 한다. 사내 계정을 쓴다면
+> 조직(Organization) 소속으로 발급된 키인지 확인할 것.
+
+### 사내 프록시 환경
+
+**Node 내장 `fetch`는 `HTTPS_PROXY`를 자동으로 사용하지 않는다.** 프록시 뒤에서 쓰려면
+`undici` 패키지가 있어야 하고, 스크립트가 이를 감지해 적용한다.
+
+```powershell
+cd "D:\LLM WIKI"
+npm install undici
+setx HTTPS_PROXY "http://proxy.사내주소:포트"
+```
+
+없으면 스크립트가 경고를 출력하고 연결에 실패한다.
+
+### 설정 확인 — 위키 내용을 전송하지 않는다
+
+```powershell
+node .claude\scripts\external-verify.mjs --check
+```
+
+키·네트워크·모델 사용 가능 여부만 점검한다. **초안이나 위키 내용을 일절 보내지 않는다.**
+키 설정 직후 이것부터 돌린다.
+
+| 결과 | 의미 |
+|---|---|
+| `✅ 연결 정상` + `✅ 지정 모델 사용 가능` | 준비 완료 |
+| `❌ OPENAI_API_KEY 미설정` (코드 3) | 터미널을 새로 열었는지 확인 |
+| `❌ 인증 실패 401` (코드 4) | 키가 잘못됐거나 만료 |
+| `❌ 인증 실패 429` (코드 4) | 크레딧 잔액 확인 |
+| `⚠ 지정 모델이 목록에 없다` | `EXTERNAL_VERIFIER_MODEL` 수정 |
+| `❌ 연결 실패` (코드 4) | 프록시 설정·`undici` 설치 확인 |
+
+### 전송 내용을 미리 보려면
 
 ```powershell
 node .claude\scripts\external-verify.mjs "92_outputs\01_drafts\<초안>.md" --dry-run
 ```
 
-API를 호출하지 않고 **전송 예정 내용만** `92_outputs\05_orchestration\egress\`에 기록한다.
-첫 사용 전에 한 번 돌려 무엇이 나가는지 눈으로 확인할 것을 권한다.
+API를 호출하지 않고 **전송 예정 내용 전량만** `92_outputs\05_orchestration\egress\`에 기록한다.
+첫 실사용 전에 한 번 돌려 무엇이 나가는지 눈으로 확인할 것을 권한다.
 
 ## 5. 실행
 

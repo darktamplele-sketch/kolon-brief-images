@@ -50,6 +50,15 @@ node .claude/scripts/external-verify.mjs "<초안 md 경로>" --dry-run
 무엇이 전송될지 로그 파일에만 기록하고 API를 호출하지 않는다.
 조정자가 전송 여부를 검토할 때 쓴다.
 
+### 연결만 점검할 때
+
+```bash
+node .claude/scripts/external-verify.mjs --check
+```
+
+키·네트워크·모델 가용성만 확인한다. **초안이나 위키 내용을 일절 전송하지 않는다.**
+호출이 실패하면 원인을 가리기 위해 먼저 이것을 돌린다.
+
 ### 종료 코드
 
 | 코드 | 의미 | 조치 |
@@ -57,7 +66,7 @@ node .claude/scripts/external-verify.mjs "<초안 md 경로>" --dry-run
 | 0 | 정상 | 지적 카드를 조정자에게 전달 |
 | 2 | 인자·파일 오류 | 경로 확인 후 재실행 |
 | 3 | `OPENAI_API_KEY` 미설정 | 조정자에게 보고. 검증자 C 없이 진행할지 판단 요청 |
-| 4 | API 오류 | 응답 본문을 보고. 사내 프록시 환경이면 `HTTPS_PROXY` 확인 |
+| 4 | API·연결 오류 | `--check`로 원인을 가른다. 프록시 환경이면 `HTTPS_PROXY`와 `undici` 설치 확인 |
 | 5 | 응답 파싱 실패 | egress 로그의 `response_raw`를 읽어 직접 지적 카드로 변환 |
 
 ---

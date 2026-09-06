@@ -23,21 +23,69 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 
-const DRAFT = process.argv[2];
-const DRY = process.argv.includes('--dry-run');
+const ARGS  = process.argv.slice(2);
+const CHECK = ARGS.includes('--check');
+const DRY   = ARGS.includes('--dry-run');
+const DRAFT = ARGS.find(a => !a.startsWith('--'));
+
+const MODEL   = process.env.EXTERNAL_VERIFIER_MODEL   || 'gpt-4.1';
+const BASEURL = process.env.EXTERNAL_VERIFIER_BASEURL || 'https://api.openai.com/v1';
+const KEY     = process.env.OPENAI_API_KEY;
+const PROXY   = process.env.HTTPS_PROXY || process.env.https_proxy;
+
+// ── 사내 프록시 ──────────────────────────────────────────────
+// Node 내장 fetch는 HTTPS_PROXY를 자동으로 사용하지 않는다.
+// 프록시 환경이면 undici 패키지가 필요하다:  npm i undici
+if (PROXY) {
+  try {
+    const { ProxyAgent, setGlobalDispatcher } = await import('undici');
+    setGlobalDispatcher(new ProxyAgent(PROXY));
+    console.error(`[proxy] 적용됨: ${PROXY.replace(/\/\/[^@]*@/, '//***@')}`);
+  } catch {
+    console.error(`[proxy] HTTPS_PROXY가 설정되어 있으나 undici 패키지가 없어 적용하지 못했다.`);
+    console.error(`        사내 프록시 환경이면 연결이 실패한다. 해결: npm i undici`);
+  }
+}
+
+// ── 연결 점검 모드 ───────────────────────────────────────────
+// 위키 내용을 전혀 전송하지 않고 키·네트워크만 확인한다.
+if (CHECK) {
+  if (!KEY) {
+    console.error('❌ OPENAI_API_KEY 미설정');
+    process.exit(3);
+  }
+  console.error(`키 감지: ${KEY.slice(0, 7)}…${KEY.slice(-4)} (길이 ${KEY.length})`);
+  try {
+    const r = await fetch(`${BASEURL}/models`, {
+      headers: { 'Authorization': `Bearer ${KEY}` },
+    });
+    if (!r.ok) {
+      console.error(`❌ 인증 실패 ${r.status}: ${(await r.text()).slice(0, 300)}`);
+      process.exit(4);
+    }
+    const list = await r.json();
+    const ids = (list.data ?? []).map(m => m.id);
+    console.error(`✅ 연결 정상. 사용 가능 모델 ${ids.length}종`);
+    console.error(ids.includes(MODEL)
+      ? `✅ 지정 모델 사용 가능: ${MODEL}`
+      : `⚠ 지정 모델(${MODEL})이 목록에 없다. EXTERNAL_VERIFIER_MODEL을 확인할 것`);
+    process.exit(0);
+  } catch (e) {
+    console.error(`❌ 연결 실패: ${e.message}`);
+    console.error('   사내 프록시 환경이면 HTTPS_PROXY 설정과 undici 설치를 확인할 것');
+    process.exit(4);
+  }
+}
 
 if (!DRAFT) {
   console.error('사용법: node external-verify.mjs <draft.md 경로> [--dry-run]');
+  console.error('       node external-verify.mjs --check     (전송 없이 연결만 점검)');
   process.exit(2);
 }
 if (!fs.existsSync(DRAFT)) {
   console.error(`초안 파일 없음: ${DRAFT}`);
   process.exit(2);
 }
-
-const MODEL   = process.env.EXTERNAL_VERIFIER_MODEL   || 'gpt-4.1';
-const BASEURL = process.env.EXTERNAL_VERIFIER_BASEURL || 'https://api.openai.com/v1';
-const KEY     = process.env.OPENAI_API_KEY;
 
 const draft = fs.readFileSync(DRAFT, 'utf8');
 
