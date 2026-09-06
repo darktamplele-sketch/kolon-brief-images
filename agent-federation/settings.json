@@ -9,8 +9,11 @@
       "Edit(92_outputs/01_drafts/**)",
       "Write(92_outputs/04_reports/**)",
       "Edit(92_outputs/04_reports/**)",
+      "Write(92_outputs/05_orchestration/**)",
+      "Edit(92_outputs/05_orchestration/**)",
       "WebSearch",
-      "WebFetch"
+      "WebFetch",
+      "Bash(node .claude/scripts/external-verify.mjs:*)"
     ],
     "deny": [
       "Write(10_wiki/**)",
@@ -29,17 +32,22 @@
       "Edit(99_legacy/**)",
       "Write(.obsidian/**)",
       "Edit(.obsidian/**)",
+      "Write(92_outputs/05_orchestration/egress/**)",
+      "Edit(92_outputs/05_orchestration/egress/**)",
       "Bash(git init:*)",
       "Bash(git remote:*)",
       "Bash(git push:*)",
       "Bash(gh:*)",
       "Bash(curl:*)",
+      "Bash(wget:*)",
       "Bash(scp:*)",
       "Bash(rsync:*)"
     ]
   },
   "env": {
     "WIKI_DRAFTS": "92_outputs/01_drafts",
-    "WIKI_REPORTS": "92_outputs/04_reports"
+    "WIKI_REPORTS": "92_outputs/04_reports",
+    "WIKI_ORCHESTRATION": "92_outputs/05_orchestration",
+    "EXTERNAL_VERIFIER_MODEL": "gpt-4.1"
   }
 }
