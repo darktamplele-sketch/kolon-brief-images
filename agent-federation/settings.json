@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Grep(**)",
+      "Glob(**)",
+      "Write(92_outputs/01_drafts/**)",
+      "Edit(92_outputs/01_drafts/**)",
+      "Write(92_outputs/04_reports/**)",
+      "Edit(92_outputs/04_reports/**)",
+      "WebSearch",
+      "WebFetch"
+    ],
+    "deny": [
+      "Write(10_wiki/**)",
+      "Edit(10_wiki/**)",
+      "Write(91_index/**)",
+      "Edit(91_index/**)",
+      "Write(00_raw_sources/**)",
+      "Edit(00_raw_sources/**)",
+      "Write(05_processing_cache/**)",
+      "Edit(05_processing_cache/**)",
+      "Write(90_schema/**)",
+      "Edit(90_schema/**)",
+      "Write(93_inbox/**)",
+      "Edit(93_inbox/**)",
+      "Write(99_legacy/**)",
+      "Edit(99_legacy/**)",
+      "Write(.obsidian/**)",
+      "Edit(.obsidian/**)",
+      "Bash(git init:*)",
+      "Bash(git remote:*)",
+      "Bash(git push:*)",
+      "Bash(gh:*)",
+      "Bash(curl:*)",
+      "Bash(scp:*)",
+      "Bash(rsync:*)"
+    ]
+  },
+  "env": {
+    "WIKI_DRAFTS": "92_outputs/01_drafts",
+    "WIKI_REPORTS": "92_outputs/04_reports"
+  }
+}
